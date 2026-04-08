@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<h1>Admin Dashboard</h1>
+<button onclick="logout()">Logout</button>
+
+<h2>Add Product</h2>
+<form id="addForm">
+<input type="text" name="name" placeholder="Product Name" required>
+<input type="number" name="amount" placeholder="Price" required>
+<input type="number" name="quantity" placeholder="Quantity" required>
+<textarea name="details" placeholder="Details"></textarea>
+<input type="file" name="image" required>
+<button>Add Product</button>
+</form>
+
+<h2>Products</h2>
+<table>
+<thead>
+<tr><th>Image</th><th>Name</th><th>Price</th><th>Qty</th><th>Action</th></tr>
+</thead>
+<tbody id="adminProducts"></tbody>
+</table>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
