@@ -75,4 +75,4 @@ app.delete("/products/:id", auth, async(req,res)=>{
   res.json({msg:"deleted"});
 });
 
-app.listen(5000,()=>console.log("Server running on 5000"));
+app.listen(5001,()=>console.log("Server running on 5000"));
