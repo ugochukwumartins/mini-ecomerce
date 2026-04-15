@@ -1,17 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Admin Login</title>
-<link rel="stylesheet" href="css/admin-login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarketNest Admin Login</title>
+  <link rel="stylesheet" href="css/admin-login.css">
 </head>
 <body>
-<div class="login-box">
-<h2>Admin Login</h2>
-<input id="email" type="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<p id="msg"></p>
-</div>
-<script src="js/admin-login.js"></script>
+  <main class="login-shell">
+    <form class="login-box" id="loginForm">
+      <p class="eyebrow">MarketNest</p>
+      <h1>Admin Login</h1>
+      <label>Email<input id="email" type="email" placeholder="admin@shop.com" required></label>
+      <label>Password<input id="password" type="password" placeholder="admin123" required></label>
+      <button type="submit">Login</button>
+      <button class="link-button" id="showForgot" type="button">Forgot password?</button>
+      <p id="msg" role="status"></p>
+      <a href="index.html">Back to store</a>
+    </form>
+
+    <form class="login-box hidden" id="forgotForm">
+      <p class="eyebrow">Password reset</p>
+      <h1>Get Reset Code</h1>
+      <label>Admin email<input id="forgotEmail" type="email" placeholder="admin@shop.com" required></label>
+      <button type="submit">Send reset code</button>
+      <button class="link-button" data-show-login type="button">Back to login</button>
+      <p id="forgotMsg" role="status"></p>
+    </form>
+
+    <form class="login-box hidden" id="resetForm">
+      <p class="eyebrow">New password</p>
+      <h1>Reset Password</h1>
+      <label>Admin email<input id="resetEmail" type="email" required></label>
+      <label>Reset code<input id="resetCode" inputmode="numeric" placeholder="123456" required></label>
+      <label>New password<input id="newPassword" type="password" minlength="6" required></label>
+      <button type="submit">Update password</button>
+      <button class="link-button" data-show-login type="button">Back to login</button>
+      <p id="resetMsg" role="status"></p>
+    </form>
+  </main>
+  <script src="js/admin-login.js"></script>
 </body>
 </html>

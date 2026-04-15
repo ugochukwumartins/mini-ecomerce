@@ -1,11 +1,13 @@
 const jwt = require("jsonwebtoken");
-const SECRET = "SECRET_KEY_123";
 
 module.exports = (req, res, next) => {
-  const token = req.headers.authorization;
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : header;
   if (!token) return res.sendStatus(401);
+
   try {
-    jwt.verify(token, SECRET);
+    const secret = process.env.JWT_SECRET || "SECRET_KEY_123";
+    req.admin = jwt.verify(token, secret);
     next();
   } catch {
     res.sendStatus(403);

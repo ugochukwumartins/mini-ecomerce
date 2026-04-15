@@ -1,31 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Admin Dashboard</title>
-<link rel="stylesheet" href="css/admin.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarketNest Admin</title>
+  <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
-<h1>Admin Dashboard</h1>
-<button onclick="logout()">Logout</button>
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">MarketNest</p>
+      <h1>Admin Dashboard</h1>
+    </div>
+    <div class="header-actions">
+      <a href="index.html">Storefront</a>
+      <button id="logoutButton" type="button">Logout</button>
+    </div>
+  </header>
 
-<h2>Add Product</h2>
-<form id="addForm">
-<input type="text" name="name" placeholder="Product Name" required>
-<input type="number" name="amount" placeholder="Price" required>
-<input type="number" name="quantity" placeholder="Quantity" required>
-<textarea name="details" placeholder="Details"></textarea>
-<input type="file" name="image" required>
-<button>Add Product</button>
-</form>
+  <main class="admin-layout">
+    <section class="panel product-editor">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Inventory</p>
+          <h2 id="formTitle">Add Product</h2>
+        </div>
+        <button class="ghost-button" id="resetForm" type="button">Clear</button>
+      </div>
+      <form id="addForm">
+        <input type="hidden" name="productId" id="productId">
+        <label>Name<input type="text" name="name" placeholder="Leather tote" required></label>
+        <label>Price<input type="number" name="amount" placeholder="25000" min="0" required></label>
+        <label>Quantity<input type="number" name="quantity" placeholder="10" min="0" required></label>
+        <label>Category<input type="text" name="category" placeholder="Bags"></label>
+        <label class="checkbox-line"><input type="checkbox" name="featured"> Featured product</label>
+        <label>Details<textarea name="details" rows="4" placeholder="Short product description"></textarea></label>
+        <label>Image<input type="file" name="image" accept="image/*"></label>
+        <button class="primary-button" id="saveButton" type="submit">Save product</button>
+        <p id="formMessage" class="form-message"></p>
+      </form>
+    </section>
 
-<h2>Products</h2>
-<table>
-<thead>
-<tr><th>Image</th><th>Name</th><th>Price</th><th>Qty</th><th>Action</th></tr>
-</thead>
-<tbody id="adminProducts"></tbody>
-</table>
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Catalog</p>
+          <h2>Products</h2>
+        </div>
+        <button class="ghost-button" id="refreshProducts" type="button">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminProducts"></tbody>
+        </table>
+      </div>
+    </section>
 
-<script src="js/admin.js"></script>
+    <section class="panel orders-panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Fulfillment</p>
+          <h2>Orders</h2>
+        </div>
+        <button class="ghost-button" id="refreshOrders" type="button">Refresh</button>
+      </div>
+      <div id="ordersList" class="orders-list"></div>
+    </section>
+  </main>
+
+  <script src="js/admin.js"></script>
 </body>
 </html>

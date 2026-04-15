@@ -1,1 +1,102 @@
-.login-box{width:300px;margin:120px auto;border:1px solid #ccc;padding:20px}
+:root {
+  --ink: #181818;
+  --muted: #666666;
+  --line: #dddddd;
+  --paper: #ffffff;
+  --soft: #f6f7f2;
+  --green: #1f7a4d;
+  --red: #c0392b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--soft);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 20px;
+}
+
+.login-box {
+  display: grid;
+  gap: 14px;
+  width: min(390px, 100%);
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0 0 8px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--green);
+  color: white;
+  padding: 12px 16px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#msg,
+#forgotMsg,
+#resetMsg {
+  min-height: 22px;
+  margin: 0;
+  color: var(--red);
+  font-weight: 700;
+}
+
+.link-button {
+  background: transparent;
+  color: var(--ink);
+  padding: 6px 0;
+  text-align: left;
+}
+
+.hidden {
+  display: none;
+}
+
+a {
+  color: var(--ink);
+  font-weight: 700;
+}

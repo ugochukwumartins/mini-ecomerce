@@ -1,12 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Mini E-Commerce</title>
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarketNest Store</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<h1>Product Store</h1>
-<div id="products"></div>
-<script src="js/script.js"></script>
+  <header class="site-header">
+    <a class="brand" href="/">
+      <span class="brand-mark">M</span>
+      <span>MarketNest</span>
+    </a>
+    <nav class="header-actions" aria-label="Store actions">
+      <a href="admin-login.html">Admin</a>
+      <button class="cart-button" id="openCart" type="button">
+        Cart <span id="cartCount">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="store-intro">
+      <div>
+        <p class="eyebrow">Fresh picks, fast checkout</p>
+        <h1>Shop quality essentials without the market stress.</h1>
+        <p class="intro-copy">Browse available stock, add favorites to your cart, and place an order for delivery.</p>
+      </div>
+      <form class="search-panel" id="searchForm">
+        <label for="searchInput">Find products</label>
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="Search bags, shoes, watches...">
+          <button type="submit">Search</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="toolbar" aria-label="Product filters">
+      <div class="category-list" id="categoryList"></div>
+      <label class="sort-control">
+        Sort
+        <select id="sortSelect">
+          <option value="newest">Newest</option>
+          <option value="price_asc">Price: low to high</option>
+          <option value="price_desc">Price: high to low</option>
+          <option value="name">Name</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="status-message" id="statusMessage" role="status"></section>
+    <section class="product-grid" id="products" aria-live="polite"></section>
+  </main>
+
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Shopping cart" aria-hidden="true">
+    <div class="cart-panel">
+      <div class="cart-head">
+        <div>
+          <p class="eyebrow">Your order</p>
+          <h2>Cart</h2>
+        </div>
+        <button class="ghost-button" id="closeCart" type="button">Close</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-summary">
+        <div><span>Subtotal</span><strong id="cartSubtotal">NGN 0</strong></div>
+        <div><span>Delivery</span><strong id="deliveryFee">NGN 2,500</strong></div>
+        <div class="total-row"><span>Total</span><strong id="cartTotal">NGN 0</strong></div>
+      </div>
+      <button class="checkout-button" id="checkoutButton" type="button">Checkout</button>
+    </div>
+  </aside>
+
+  <dialog id="checkoutModal" class="checkout-modal">
+    <form id="checkoutForm" method="dialog">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">Delivery details</p>
+          <h2>Complete order</h2>
+        </div>
+        <button class="ghost-button" id="closeCheckout" type="button">Close</button>
+      </div>
+      <div class="form-grid">
+        <label>Full name<input name="name" required></label>
+        <label>Email<input name="email" type="email" required></label>
+        <label>Phone<input name="phone" required></label>
+        <label>Payment
+          <select name="paymentMethod">
+            <option value="pay_on_delivery">Pay on delivery</option>
+            <option value="bank_transfer">Bank transfer</option>
+          </select>
+        </label>
+        <label class="full-span">Delivery address<textarea name="address" rows="3" required></textarea></label>
+      </div>
+      <p class="checkout-note" id="checkoutNote"></p>
+      <button class="checkout-button" type="submit">Place order</button>
+    </form>
+  </dialog>
+
+  <script src="js/script.js"></script>
 </body>
 </html>
