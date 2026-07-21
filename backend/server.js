@@ -13,8 +13,10 @@ const jwt = require("jsonwebtoken");
 
 const Product = require("./models/Product");
 const Admin = require("./models/Admin");
+const User = require("./models/User");
 const Order = require("./models/Order");
 const auth = require("./middleware/auth");
+const customerAuth = require("./middleware/customerAuth");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -102,11 +104,46 @@ const loginAdmin = asyncHandler(async (req, res) => {
   const ok = await bcrypt.compare(password, admin.password);
   if (!ok) return res.status(401).json({ message: "Invalid login details" });
 
-  const token = jwt.sign({ id: admin._id, email: admin.email }, JWT_SECRET, { expiresIn: "8h" });
+  const token = jwt.sign({ id: admin._id, email: admin.email, role: "admin" }, JWT_SECRET, { expiresIn: "8h" });
   res.json({ token, admin: { email: admin.email } });
 });
 
 app.post("/api/admin/login", loginAdmin);
+
+const customerToken = user => jwt.sign(
+  { id: user._id, email: user.email, role: "customer" },
+  JWT_SECRET,
+  { expiresIn: "7d" }
+);
+
+app.post("/api/auth/register", asyncHandler(async (req, res) => {
+  const name = String(req.body.name || "").trim();
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const password = req.body.password;
+
+  if (!name || !email || typeof password !== "string" || password.length < 6) {
+    return res.status(400).json({ message: "Name, email, and a password of at least 6 characters are required" });
+  }
+
+  if (await User.exists({ email })) {
+    return res.status(409).json({ message: "An account with that email already exists" });
+  }
+
+  const user = await User.create({ name, email, password: await bcrypt.hash(password, 10) });
+  res.status(201).json({ token: customerToken(user), user: { name: user.name, email: user.email } });
+}));
+
+app.post("/api/auth/login", asyncHandler(async (req, res) => {
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const password = req.body.password;
+  const user = await User.findOne({ email });
+
+  if (!user || typeof password !== "string" || !(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({ message: "Invalid email or password" });
+  }
+
+  res.json({ token: customerToken(user), user: { name: user.name, email: user.email } });
+}));
 
 app.post("/api/admin/forgot-password", asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -219,57 +256,80 @@ app.delete("/api/products/:id", auth, asyncHandler(async (req, res) => {
   res.json({ message: "Product deleted" });
 }));
 
-app.post("/api/orders", asyncHandler(async (req, res) => {
+app.post("/api/orders", customerAuth, asyncHandler(async (req, res) => {
   const { customer, items, paymentMethod } = req.body;
 
   if (!customer || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: "Customer details and cart items are required" });
   }
 
-  const productIds = items.map(item => item.productId);
-  const products = await Product.find({ _id: { $in: productIds } });
-  const productMap = new Map(products.map(product => [product._id.toString(), product]));
-
-  const orderItems = [];
-  let subtotal = 0;
-
+  // Combine duplicate product IDs before checking stock. Without this, a client
+  // could submit the same product twice and pass each individual stock check.
+  const requestedItems = new Map();
   for (const item of items) {
-    const product = productMap.get(item.productId);
-    const quantity = Number(item.quantity);
+    const productId = String(item && item.productId || "");
+    const quantity = Number(item && item.quantity);
 
-    if (!product || quantity < 1) {
+    if (!mongoose.isValidObjectId(productId) || !Number.isSafeInteger(quantity) || quantity < 1) {
       return res.status(400).json({ message: "One or more cart items are invalid" });
     }
 
-    if (product.quantity < quantity) {
-      return res.status(409).json({ message: `${product.name} has only ${product.quantity} left` });
+    const requestedQuantity = (requestedItems.get(productId) || 0) + quantity;
+    if (!Number.isSafeInteger(requestedQuantity)) {
+      return res.status(400).json({ message: "One or more cart items are invalid" });
+    }
+    requestedItems.set(productId, requestedQuantity);
+  }
+
+  const reservations = [];
+
+  try {
+    // The quantity condition and decrement happen in one database operation, so
+    // simultaneous checkouts cannot reserve the same remaining stock.
+    for (const [productId, quantity] of requestedItems) {
+      const product = await Product.findOneAndUpdate(
+        { _id: productId, quantity: { $gte: quantity } },
+        { $inc: { quantity: -quantity } },
+        { new: true }
+      );
+
+      if (!product) {
+        const error = new Error("One or more products are unavailable or out of stock");
+        error.status = 409;
+        throw error;
+      }
+
+      reservations.push({ product, quantity });
     }
 
-    subtotal += product.amount * quantity;
-    orderItems.push({
+    const orderItems = reservations.map(({ product, quantity }) => ({
       product: product._id,
       name: product.name,
       amount: product.amount,
       quantity,
       image: product.image
+    }));
+    const subtotal = orderItems.reduce((sum, item) => sum + item.amount * item.quantity, 0);
+
+    const order = await Order.create({
+      user: req.user.id,
+      orderNumber: createOrderNumber(),
+      customer,
+      items: orderItems,
+      subtotal,
+      deliveryFee: DELIVERY_FEE,
+      total: subtotal + DELIVERY_FEE,
+      paymentMethod: paymentMethod || "pay_on_delivery"
     });
+
+    res.status(201).json(order);
+  } catch (error) {
+    // Keep stock accurate if a later reservation or saving the order fails.
+    await Promise.all(reservations.map(({ product, quantity }) =>
+      Product.findByIdAndUpdate(product._id, { $inc: { quantity } })
+    ));
+    throw error;
   }
-
-  for (const item of orderItems) {
-    await Product.findByIdAndUpdate(item.product, { $inc: { quantity: -item.quantity } });
-  }
-
-  const order = await Order.create({
-    orderNumber: createOrderNumber(),
-    customer,
-    items: orderItems,
-    subtotal,
-    deliveryFee: DELIVERY_FEE,
-    total: subtotal + DELIVERY_FEE,
-    paymentMethod: paymentMethod || "pay_on_delivery"
-  });
-
-  res.status(201).json(order);
 }));
 
 app.get("/api/orders", auth, asyncHandler(async (req, res) => {
