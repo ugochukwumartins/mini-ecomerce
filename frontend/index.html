@@ -13,7 +13,8 @@
       <span>MarketNest</span>
     </a>
     <nav class="header-actions" aria-label="Store actions">
-      <a href="admin-login.html">Admin</a>
+      <button class="ghost-button" id="accountButton" type="button">Login</button>
+      <a id="adminLink" href="admin.html" hidden>Admin dashboard</a>
       <button class="cart-button" id="openCart" type="button">
         Cart <span id="cartCount">0</span>
       </button>
@@ -71,6 +72,35 @@
       <button class="checkout-button" id="checkoutButton" type="button">Checkout</button>
     </div>
   </aside>
+
+  <dialog id="authModal" class="checkout-modal">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow">Customer account</p>
+        <h2 id="authTitle">Login to continue</h2>
+      </div>
+      <button class="ghost-button" id="closeAuth" type="button">Close</button>
+    </div>
+    <form id="loginForm" class="auth-form">
+      <div class="form-grid">
+        <label class="full-span">Email<input name="email" type="email" autocomplete="email" required></label>
+        <label class="full-span">Password<input name="password" type="password" autocomplete="current-password" required></label>
+      </div>
+      <p class="checkout-note" id="authNote"></p>
+      <button class="checkout-button" type="submit">Login</button>
+      <button class="ghost-button auth-switch" id="showRegister" type="button">Create an account</button>
+    </form>
+    <form id="registerForm" class="auth-form" hidden>
+      <div class="form-grid">
+        <label class="full-span">Full name<input name="name" autocomplete="name" required></label>
+        <label class="full-span">Email<input name="email" type="email" autocomplete="email" required></label>
+        <label class="full-span">Password<input name="password" type="password" minlength="6" autocomplete="new-password" required></label>
+      </div>
+      <p class="checkout-note" id="registerNote"></p>
+      <button class="checkout-button" type="submit">Create account</button>
+      <button class="ghost-button auth-switch" id="showLogin" type="button">I already have an account</button>
+    </form>
+  </dialog>
 
   <dialog id="checkoutModal" class="checkout-modal">
     <form id="checkoutForm" method="dialog">

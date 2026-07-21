@@ -20,6 +20,13 @@ const sortSelect = document.getElementById("sortSelect");
 const checkoutModal = document.getElementById("checkoutModal");
 const checkoutForm = document.getElementById("checkoutForm");
 const checkoutNote = document.getElementById("checkoutNote");
+const authModal = document.getElementById("authModal");
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+const accountButton = document.getElementById("accountButton");
+const adminLink = document.getElementById("adminLink");
+
+let customerSession = JSON.parse(localStorage.getItem("marketnestUser") || "null");
 
 const money = value => `NGN ${Number(value || 0).toLocaleString()}`;
 const escapeHtml = value => String(value || "").replace(/[&<>"']/g, char => ({
@@ -58,10 +65,56 @@ async function api(path, options = {}) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    throw new Error(data.message || "Request failed");
+    const error = new Error(data.message || "Request failed");
+    error.status = res.status;
+    throw error;
   }
 
   return data;
+}
+
+function updateAccountButton() {
+  accountButton.textContent = customerSession ? `Hi, ${customerSession.user.name.split(" ")[0]}` : "Login";
+}
+
+function showAuthPanel(panel) {
+  const isLogin = panel === "login";
+  loginForm.hidden = !isLogin;
+  registerForm.hidden = isLogin;
+  document.getElementById("authTitle").textContent = isLogin ? "Login to continue" : "Create your account";
+}
+
+function openCheckout() {
+  if (!customerSession) {
+    document.getElementById("authNote").textContent = "Please log in or create an account before checking out.";
+    showAuthPanel("login");
+    authModal.showModal();
+    return;
+  }
+
+  checkoutForm.name.value = customerSession.user.name;
+  checkoutForm.email.value = customerSession.user.email;
+  checkoutNote.textContent = `Order total: ${money(cartTotals().total)}`;
+  checkoutModal.showModal();
+}
+
+function saveCustomerSession(data) {
+  customerSession = { token: data.token, user: data.user };
+  localStorage.setItem("marketnestUser", JSON.stringify(customerSession));
+  updateAccountButton();
+}
+
+function hasAdminSession() {
+  const token = localStorage.getItem("adminToken");
+  if (!token) return false;
+
+  try {
+    const encodedPayload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(encodedPayload.padEnd(Math.ceil(encodedPayload.length / 4) * 4, "=")));
+    return payload.role === "admin" && payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
 }
 
 async function loadProducts() {
@@ -229,11 +282,55 @@ sortSelect.addEventListener("change", event => {
 
 document.getElementById("openCart").addEventListener("click", openCart);
 document.getElementById("closeCart").addEventListener("click", closeCart);
-document.getElementById("checkoutButton").addEventListener("click", () => {
-  checkoutNote.textContent = `Order total: ${money(cartTotals().total)}`;
-  checkoutModal.showModal();
-});
+document.getElementById("checkoutButton").addEventListener("click", openCheckout);
 document.getElementById("closeCheckout").addEventListener("click", () => checkoutModal.close());
+document.getElementById("closeAuth").addEventListener("click", () => authModal.close());
+accountButton.addEventListener("click", () => {
+  if (customerSession) {
+    customerSession = null;
+    localStorage.removeItem("marketnestUser");
+    updateAccountButton();
+    return;
+  }
+  showAuthPanel("login");
+  authModal.showModal();
+});
+document.getElementById("showRegister").addEventListener("click", () => showAuthPanel("register"));
+document.getElementById("showLogin").addEventListener("click", () => showAuthPanel("login"));
+
+loginForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  document.getElementById("authNote").textContent = "Logging in...";
+  try {
+    const data = await api("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(new FormData(loginForm)))
+    });
+    saveCustomerSession(data);
+    authModal.close();
+    openCheckout();
+  } catch (error) {
+    document.getElementById("authNote").textContent = error.message;
+  }
+});
+
+registerForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  document.getElementById("registerNote").textContent = "Creating account...";
+  try {
+    const data = await api("/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(new FormData(registerForm)))
+    });
+    saveCustomerSession(data);
+    authModal.close();
+    openCheckout();
+  } catch (error) {
+    document.getElementById("registerNote").textContent = error.message;
+  }
+});
 
 checkoutForm.addEventListener("submit", async event => {
   event.preventDefault();
@@ -247,7 +344,10 @@ checkoutForm.addEventListener("submit", async event => {
   try {
     const order = await api("/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${customerSession.token}`
+      },
       body: JSON.stringify({
         customer,
         paymentMethod,
@@ -264,9 +364,19 @@ checkoutForm.addEventListener("submit", async event => {
     setStatus(`Order ${order.orderNumber} placed successfully. We will contact you shortly.`, "success");
     loadProducts();
   } catch (error) {
+    if (error.status === 401 || error.status === 403) {
+      customerSession = null;
+      localStorage.removeItem("marketnestUser");
+      updateAccountButton();
+      checkoutModal.close();
+      openCheckout();
+      return;
+    }
     checkoutNote.textContent = error.message;
   }
 });
 
+updateAccountButton();
+adminLink.hidden = !hasAdminSession();
 renderCart();
 loadProducts();

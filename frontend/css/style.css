@@ -407,6 +407,12 @@ textarea {
   font-weight: 700;
 }
 
+.auth-switch {
+  display: block;
+  margin: 12px auto 0;
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
   .site-header,
   .toolbar,
