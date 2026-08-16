@@ -117,6 +117,120 @@ main {
   padding: 34px 0;
 }
 
+.hero-copy {
+  position: relative;
+  padding: 12px 0 12px 22px;
+}
+
+.hero-copy::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 5px;
+  border-radius: 999px;
+  background: linear-gradient(var(--yellow), var(--green));
+  content: "";
+  transform-origin: top;
+  animation: grow-line 700ms 120ms both ease-out;
+}
+
+.hero-eyebrow,
+.hero-copy h1,
+.hero-copy .intro-copy,
+.hero-promise {
+  animation: rise-in 620ms both cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-copy h1 {
+  margin-bottom: 18px;
+  letter-spacing: -0.055em;
+  animation-delay: 90ms;
+}
+
+.hero-copy h1 span {
+  color: var(--green);
+}
+
+.hero-copy .intro-copy {
+  margin-bottom: 18px;
+  animation-delay: 180ms;
+}
+
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation-delay: 20ms;
+}
+
+.eyebrow-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 5px rgba(31, 122, 77, 0.13);
+  animation: pulse-dot 1.8s 900ms infinite ease-in-out;
+}
+
+.hero-promise {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+  padding: 9px 12px;
+  border: 1px solid rgba(31, 122, 77, 0.2);
+  border-radius: 999px;
+  background: rgba(31, 122, 77, 0.08);
+  color: var(--green-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
+  animation-delay: 270ms;
+}
+
+.hero-promise span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+  font-size: 0.72rem;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grow-line {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes pulse-dot {
+  50% { box-shadow: 0 0 0 9px rgba(31, 122, 77, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy::before,
+  .hero-eyebrow,
+  .hero-copy h1,
+  .hero-copy .intro-copy,
+  .hero-promise,
+  .eyebrow-dot,
+  .search-panel {
+    animation: none;
+  }
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: var(--green);
@@ -149,11 +263,14 @@ h1 {
 
 .search-panel {
   display: grid;
-  gap: 10px;
-  padding: 18px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  gap: 12px;
+  padding: 22px;
+  overflow: hidden;
+  background: radial-gradient(circle at 100% 0, rgba(243, 198, 78, 0.28), transparent 38%), var(--paper);
+  border: 1px solid rgba(31, 122, 77, 0.18);
+  border-radius: 16px;
+  box-shadow: 0 16px 35px rgba(24, 24, 24, 0.08);
+  animation: search-card-in 700ms 180ms both cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .search-panel label,
@@ -165,10 +282,79 @@ h1 {
   font-weight: 700;
 }
 
+.search-panel > label {
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.search-panel > label::after {
+  color: var(--muted);
+  content: "Discover something you’ll love";
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
 .search-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.search-row:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(31, 122, 77, 0.13);
+}
+
+.search-row input {
+  min-width: 0;
+  border: 0;
+  padding: 11px 12px;
+  outline: none;
+}
+
+.search-row input::placeholder {
+  color: #949494;
+}
+
+.search-row button {
+  min-width: 112px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 5px 12px rgba(31, 122, 77, 0.22);
+  transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.search-row button::before {
+  margin-right: 7px;
+  content: "⌕";
+  font-size: 1.2rem;
+  line-height: 0;
+}
+
+.search-row button:hover {
+  background: var(--green-dark);
+  box-shadow: 0 8px 16px rgba(31, 122, 77, 0.28);
+  transform: translateY(-1px);
+}
+
+.search-row button:active {
+  transform: translateY(1px);
+}
+
+@keyframes search-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 input,
